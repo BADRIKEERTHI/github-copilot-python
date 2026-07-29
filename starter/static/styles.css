@@ -116,3 +116,13 @@ body.dark button {
 body.dark button:hover {
     background: #666;
 }
+#score-list {
+    width: fit-content;
+    margin: 0 auto;
+    padding-left: 40px;
+    text-align: left;
+}
+
+#score-list li {
+    margin: 5px 0;
+}
