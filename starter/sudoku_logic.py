@@ -47,11 +47,56 @@ def remove_cells(board, clues):
         if board[row][col] != EMPTY:
             board[row][col] = EMPTY
             attempts -= 1
+def generate_puzzle(difficulty="medium"):
+    difficulties = {
+        "easy": 45,
+        "medium": 35,
+        "hard": 25
+    }
 
-def generate_puzzle(clues=35):
-    board = create_empty_board()
-    fill_board(board)
-    solution = deep_copy(board)
-    remove_cells(board, clues)
-    puzzle = deep_copy(board)
-    return puzzle, solution
+    clues = difficulties.get(difficulty, 35)
+
+    while True:
+        board = create_empty_board()
+        fill_board(board)
+
+        solution = deep_copy(board)
+
+        remove_cells(board, clues)
+
+        if has_unique_solution(board):
+            puzzle = deep_copy(board)
+            return puzzle, solution
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Add a function to check if a Sudoku puzzle has exactly one solution.
+def has_unique_solution(board):
+    def count_solutions(board):
+        for row in range(SIZE):
+            for col in range(SIZE):
+                if board[row][col] == EMPTY:
+                    count = 0
+                    for num in range(1, SIZE + 1):
+                        if is_safe(board, row, col, num):
+                            board[row][col] = num
+                            count += count_solutions(board)
+                            board[row][col] = EMPTY
+                    return count
+        return 1  # Found a valid solution
+
+    return count_solutions(deep_copy(board)) == 1
