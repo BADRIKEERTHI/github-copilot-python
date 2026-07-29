@@ -4,5 +4,17 @@
         "time": 13,
         "difficulty": "medium",
         "hints": 46
+    },
+    {
+        "name": "got",
+        "time": 16,
+        "difficulty": "medium",
+        "hints": 46
+    },
+    {
+        "name": "yuj",
+        "time": 26,
+        "difficulty": "easy",
+        "hints": 36
     }
 ]
