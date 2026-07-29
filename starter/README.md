@@ -27,3 +27,13 @@ A modern Sudoku web application built using Flask, HTML, CSS and JavaScript.
 ## Run Project
 
 Create virtual environment:
+
+## Testing
+
+Run:
+
+pytest
+
+Result:
+
+2 passed
