@@ -17,10 +17,12 @@ function createBoardElement() {
       input.className = 'sudoku-cell';
       input.dataset.row = i;
       input.dataset.col = j;
-      input.addEventListener('input', (e) => {
-        const val = e.target.value.replace(/[^1-9]/g, '');
-        e.target.value = val;
-      });
+  input.addEventListener('input', (e) => {
+    const val = e.target.value.replace(/[^1-9]/g, '');
+    e.target.value = val;
+
+    highlightConflicts();
+});
       rowDiv.appendChild(input);
     }
     boardDiv.appendChild(rowDiv);
@@ -37,6 +39,14 @@ function renderPuzzle(puz) {
       const idx = i * SIZE + j;
       const val = puzzle[i][j];
       const inp = inputs[idx];
+      const boxRow = Math.floor(i / 3);
+const boxCol = Math.floor(j / 3);
+
+if ((boxRow + boxCol) % 2 === 0) {
+    inp.classList.add("box-light");
+} else {
+    inp.classList.add("box-dark");
+}
       if (val !== 0) {
         inp.value = val;
         inp.disabled = true;
@@ -44,6 +54,64 @@ function renderPuzzle(puz) {
       } else {
         inp.value = '';
         inp.disabled = false;
+      }
+    }
+  }
+}
+function validateCell(cell) {
+  if (!cell.value) {
+    cell.classList.remove("incorrect");
+    return;
+  }
+
+  const row = parseInt(cell.dataset.row);
+  const col = parseInt(cell.dataset.col);
+  const value = cell.value;
+
+  const inputs = document
+    .getElementById("sudoku-board")
+    .getElementsByTagName("input");
+
+  cell.classList.remove("incorrect");
+
+  // Check row
+  for (let c = 0; c < SIZE; c++) {
+    if (c === col) continue;
+
+    const other = inputs[row * SIZE + c];
+
+    if (other.value === value) {
+      cell.classList.add("incorrect");
+      return;
+    }
+  }
+
+  // Check column
+  for (let r = 0; r < SIZE; r++) {
+    if (r === row) continue;
+
+    const other = inputs[r * SIZE + col];
+
+    if (other.value === value) {
+      cell.classList.add("incorrect");
+      return;
+    }
+  }
+
+  // Check 3×3 box
+  const startRow = Math.floor(row / 3) * 3;
+  const startCol = Math.floor(col / 3) * 3;
+
+  for (let r = startRow; r < startRow + 3; r++) {
+    for (let c = startCol; c < startCol + 3; c++) {
+
+      if (r === row && c === col) continue;
+
+      const other = inputs[r * SIZE + c];
+
+      if (other.value === value) {
+        cell.classList.add("incorrect");
+        return;
       }
     }
   }
@@ -147,13 +215,18 @@ async function loadLeaderboard() {
   const list = document.getElementById('score-list');
   list.innerHTML = '';
 
-  scores.forEach(score => {
-    const item = document.createElement('li');
+  scores.forEach((score, index) => {
+    const row = document.createElement('tr');
 
-    item.innerText =
-      `${score.name} - ${score.time}s - ${score.difficulty} - Hints: ${score.hints}`;
+    row.innerHTML = `
+      <td>${index + 1}</td>
+      <td>${score.name}</td>
+      <td>${score.time}s</td>
+      <td>${score.difficulty}</td>
+      <td>${score.hints}</td>
+    `;
 
-    list.appendChild(item);
+    list.appendChild(row);
   });
 }
 async function saveScore() {
@@ -184,6 +257,43 @@ function toggleDarkMode() {
   localStorage.setItem('darkMode', enabled);
 }
 // Wire buttons
+function highlightConflicts() {
+    const inputs = document
+        .getElementById("sudoku-board")
+        .getElementsByTagName("input");
+
+    inputs.forEach(input => {
+        input.classList.remove("incorrect");
+    });
+
+    for (let i = 0; i < inputs.length; i++) {
+        if (!inputs[i].value) continue;
+
+        const row = Math.floor(i / SIZE);
+        const col = i % SIZE;
+        const value = inputs[i].value;
+
+        for (let j = i + 1; j < inputs.length; j++) {
+            if (!inputs[j].value) continue;
+
+            const row2 = Math.floor(j / SIZE);
+            const col2 = j % SIZE;
+
+            const sameRow = row === row2;
+            const sameCol = col === col2;
+            const sameBox =
+                Math.floor(row / 3) === Math.floor(row2 / 3) &&
+                Math.floor(col / 3) === Math.floor(col2 / 3);
+
+            if ((sameRow || sameCol || sameBox) &&
+                value === inputs[j].value) {
+
+                inputs[i].classList.add("incorrect");
+                inputs[j].classList.add("incorrect");
+            }
+        }
+    }
+}
 window.addEventListener('load', () => {
   if (localStorage.getItem('darkMode') === 'true') {
     document.body.classList.add('dark');

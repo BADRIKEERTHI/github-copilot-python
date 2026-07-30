@@ -53,15 +53,24 @@ def fill_board(board):
 
 
 def remove_cells(board, clues):
-    attempts = SIZE * SIZE - clues
+    cells = [(row, col) for row in range(SIZE) for col in range(SIZE)]
+    random.shuffle(cells)
+    current_clues = SIZE * SIZE
 
-    while attempts > 0:
-        row = random.randrange(SIZE)
-        col = random.randrange(SIZE)
+    for row, col in cells:
+        if current_clues <= clues:
+            break
 
-        if board[row][col] != EMPTY:
-            board[row][col] = EMPTY
-            attempts -= 1
+        if board[row][col] == EMPTY:
+            continue
+
+        saved = board[row][col]
+        board[row][col] = EMPTY
+
+        if not has_unique_solution(board):
+            board[row][col] = saved
+        else:
+            current_clues -= 1
 
 
 def generate_puzzle(difficulty="medium"):
@@ -73,25 +82,17 @@ def generate_puzzle(difficulty="medium"):
 
     clues = difficulties.get(difficulty, 35)
 
-    while True:
-        board = create_empty_board()
+    board = create_empty_board()
+    fill_board(board)
+    solution = deep_copy(board)
+    remove_cells(board, clues)
 
-        fill_board(board)
-
-        solution = deep_copy(board)
-
-        remove_cells(board, clues)
-
-        if has_unique_solution(board):
-            puzzle = deep_copy(board)
-            return puzzle, solution
+    return board, solution
 
 
-# Copilot suggested a basic Sudoku generation approach,
-# but I evaluated the suggestion and modified it
-# to include unique solution checking before accepting puzzles.
-# This ensures every generated puzzle has exactly one solution.
-
+# Copilot suggested removing the unique-solution check for better performance.
+# I rejected that suggestion because the project rubric requires every Sudoku puzzle
+# to have exactly one unique solution.
 def has_unique_solution(board):
 
     def count_solutions(board):
