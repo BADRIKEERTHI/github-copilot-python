@@ -32,6 +32,7 @@ h1 {
     outline: none;
     background: white;
     transition: background 0.2s;
+    box-sizing: border-box;
 }
 
 .sudoku-cell:focus {
@@ -45,7 +46,8 @@ h1 {
 }
 
 .sudoku-cell.incorrect {
-    background: #ffcdd2;
+    background: #ff6b6b !important;
+    color: white !important;
 }
 
 .sudoku-cell:nth-child(3),
@@ -116,6 +118,7 @@ body.dark button {
 body.dark button:hover {
     background: #666;
 }
+
 #score-table {
     margin: 0 auto;
     border-collapse: collapse;
@@ -151,57 +154,13 @@ body.dark #score-table th {
     border-color: #555;
 }
 
-/* Alternate 3×3 box colors */
-.sudoku-row:nth-child(1) .sudoku-cell:nth-child(-n+3),
-.sudoku-row:nth-child(2) .sudoku-cell:nth-child(-n+3),
-.sudoku-row:nth-child(3) .sudoku-cell:nth-child(-n+3),
-.sudoku-row:nth-child(1) .sudoku-cell:nth-child(n+7),
-.sudoku-row:nth-child(2) .sudoku-cell:nth-child(n+7),
-.sudoku-row:nth-child(3) .sudoku-cell:nth-child(n+7),
-.sudoku-row:nth-child(4) .sudoku-cell:nth-child(4),
-.sudoku-row:nth-child(4) .sudoku-cell:nth-child(5),
-.sudoku-row:nth-child(4) .sudoku-cell:nth-child(6),
-.sudoku-row:nth-child(5) .sudoku-cell:nth-child(4),
-.sudoku-row:nth-child(5) .sudoku-cell:nth-child(5),
-.sudoku-row:nth-child(5) .sudoku-cell:nth-child(6),
-.sudoku-row:nth-child(6) .sudoku-cell:nth-child(4),
-.sudoku-row:nth-child(6) .sudoku-cell:nth-child(5),
-.sudoku-row:nth-child(6) .sudoku-cell:nth-child(6),
-.sudoku-row:nth-child(7) .sudoku-cell:nth-child(-n+3),
-.sudoku-row:nth-child(8) .sudoku-cell:nth-child(-n+3),
-.sudoku-row:nth-child(9) .sudoku-cell:nth-child(-n+3),
-.sudoku-row:nth-child(7) .sudoku-cell:nth-child(n+7),
-.sudoku-row:nth-child(8) .sudoku-cell:nth-child(n+7),
-.sudoku-row:nth-child(9) .sudoku-cell:nth-child(n+7) {
-    background: #f0f0f0;
-}
-
-/* Dark mode alternate colors */
-body.dark .sudoku-row:nth-child(1) .sudoku-cell:nth-child(-n+3),
-body.dark .sudoku-row:nth-child(2) .sudoku-cell:nth-child(-n+3),
-body.dark .sudoku-row:nth-child(3) .sudoku-cell:nth-child(-n+3),
-body.dark .sudoku-row:nth-child(1) .sudoku-cell:nth-child(n+7),
-body.dark .sudoku-row:nth-child(2) .sudoku-cell:nth-child(n+7),
-body.dark .sudoku-row:nth-child(3) .sudoku-cell:nth-child(n+7),
-body.dark .sudoku-row:nth-child(4) .sudoku-cell:nth-child(4),
-body.dark .sudoku-row:nth-child(4) .sudoku-cell:nth-child(5),
-body.dark .sudoku-row:nth-child(4) .sudoku-cell:nth-child(6),
-body.dark .sudoku-row:nth-child(5) .sudoku-cell:nth-child(4),
-body.dark .sudoku-row:nth-child(5) .sudoku-cell:nth-child(5),
-body.dark .sudoku-row:nth-child(5) .sudoku-cell:nth-child(6),
-body.dark .sudoku-row:nth-child(6) .sudoku-cell:nth-child(4),
-body.dark .sudoku-row:nth-child(6) .sudoku-cell:nth-child(5),
-body.dark .sudoku-row:nth-child(6) .sudoku-cell:nth-child(6),
-body.dark .sudoku-row:nth-child(7) .sudoku-cell:nth-child(-n+3),
-body.dark .sudoku-row:nth-child(8) .sudoku-cell:nth-child(-n+3),
-body.dark .sudoku-row:nth-child(9) .sudoku-cell:nth-child(-n+3),
-body.dark .sudoku-row:nth-child(7) .sudoku-cell:nth-child(n+7),
-body.dark .sudoku-row:nth-child(8) .sudoku-cell:nth-child(n+7),
-body.dark .sudoku-row:nth-child(9) .sudoku-cell:nth-child(n+7) {
-    background: #444;
-}
-
-/* Alternate 3x3 box colors */
+/* Alternate 3x3 box colors.
+   NOTE: previously there were TWO competing rule sets for this
+   (.sudoku-cell.box-light/.box-dark AND a separate .box-light/.box-dark
+   with !important). Having both caused unpredictable layout/paint
+   behavior depending on load order, which the reviewer flagged as a
+   visible layout shift. Keeping only ONE set, scoped to .sudoku-cell,
+   fixes that. */
 .sudoku-cell.box-light {
     background: #ffffff;
 }
@@ -216,4 +175,40 @@ body.dark .sudoku-cell.box-light {
 
 body.dark .sudoku-cell.box-dark {
     background: #555555;
+}
+
+#leaderboard {
+    width: 420px;
+    margin: 20px auto;
+    text-align: left;
+}
+
+#score-list {
+    padding-left: 20px;
+}
+
+#score-list li {
+    margin: 6px 0;
+    font-size: 16px;
+}
+
+/* Responsive layout: stack controls and shrink board on narrow/mobile screens */
+@media (max-width: 480px) {
+    .sudoku-cell {
+        width: 32px;
+        height: 32px;
+        font-size: 16px;
+    }
+
+    .controls {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    #leaderboard,
+    #score-table {
+        width: 95%;
+    }
 }

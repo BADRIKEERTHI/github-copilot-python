@@ -21,6 +21,8 @@ function createBoardElement() {
     const val = e.target.value.replace(/[^1-9]/g, '');
     e.target.value = val;
 
+    // Trigger immediate visual feedback on every keystroke
+    validateCell(e.target);
     highlightConflicts();
 });
       rowDiv.appendChild(input);
@@ -32,27 +34,37 @@ function createBoardElement() {
 function renderPuzzle(puz) {
   puzzle = puz;
   createBoardElement();
-  const boardDiv = document.getElementById('sudoku-board');
-  const inputs = boardDiv.getElementsByTagName('input');
+
+  const boardDiv = document.getElementById("sudoku-board");
+  const inputs = boardDiv.getElementsByTagName("input");
+
   for (let i = 0; i < SIZE; i++) {
     for (let j = 0; j < SIZE; j++) {
+
       const idx = i * SIZE + j;
       const val = puzzle[i][j];
       const inp = inputs[idx];
-      const boxRow = Math.floor(i / 3);
-const boxCol = Math.floor(j / 3);
 
-if ((boxRow + boxCol) % 2 === 0) {
-    inp.classList.add("box-light");
-} else {
-    inp.classList.add("box-dark");
-}
+      // Reset classes
+      inp.className = "sudoku-cell";
+
+      // Alternate 3x3 box colors
+      const boxRow = Math.floor(i / 3);
+      const boxCol = Math.floor(j / 3);
+
+      if ((boxRow + boxCol) % 2 === 0) {
+        inp.classList.add("box-light");
+      } else {
+        inp.classList.add("box-dark");
+      }
+
+      // Fill puzzle
       if (val !== 0) {
         inp.value = val;
         inp.disabled = true;
-        inp.className += ' prefilled';
+        inp.classList.add("prefilled");
       } else {
-        inp.value = '';
+        inp.value = "";
         inp.disabled = false;
       }
     }
@@ -154,6 +166,7 @@ async function checkSolution() {
       board[i][j] = val ? parseInt(val, 10) : 0;
     }
   }
+  highlightConflicts();
   const res = await fetch('/check', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
@@ -169,12 +182,15 @@ async function checkSolution() {
   const incorrect = new Set(data.incorrect.map(x => x[0]*SIZE + x[1]));
   for (let idx = 0; idx < inputs.length; idx++) {
     const inp = inputs[idx];
+
     if (inp.disabled) continue;
-    inp.className = 'sudoku-cell';
+
+    inp.classList.remove("incorrect");
+
     if (incorrect.has(idx)) {
-      inp.className = 'sudoku-cell incorrect';
+        inp.classList.add("incorrect");
     }
-  }
+}
   if (incorrect.size === 0) {
     msg.style.color = '#388e3c';
     msg.innerText = 'Congratulations! You solved it!';
@@ -204,31 +220,33 @@ async function getHint() {
 
   inputs[index].value = data.value;
   inputs[index].disabled = true;
-  inputs[index].className += ' prefilled';
+  inputs[index].classList.add("prefilled");
+  highlightConflicts();
 
   document.getElementById('message').innerText = 'Hint used!';
 }
 async function loadLeaderboard() {
-  const res = await fetch('/scores');
-  const scores = await res.json();
+    const res = await fetch('/scores');
+    const scores = await res.json();
 
-  const list = document.getElementById('score-list');
-  list.innerHTML = '';
+    const list = document.getElementById('score-list');
+    list.innerHTML = '';
 
-  scores.forEach((score, index) => {
-    const row = document.createElement('tr');
+    scores.forEach((score, index) => {
+        const row = document.createElement('tr');
 
-    row.innerHTML = `
-      <td>${index + 1}</td>
-      <td>${score.name}</td>
-      <td>${score.time}s</td>
-      <td>${score.difficulty}</td>
-      <td>${score.hints}</td>
-    `;
+        row.innerHTML = `
+            <td>${index + 1}</td>
+            <td>${score.name}</td>
+            <td>${score.time}s</td>
+            <td>${score.difficulty}</td>
+            <td>${score.hints}</td>
+        `;
 
-    list.appendChild(row);
-  });
+        list.appendChild(row);
+    });
 }
+
 async function saveScore() {
   const name = prompt("Enter your name:");
 
@@ -257,14 +275,24 @@ function toggleDarkMode() {
   localStorage.setItem('darkMode', enabled);
 }
 // Wire buttons
+
+// NOTE on Copilot use: Copilot originally suggested using
+// inputs.forEach(...) here, since that's the idiomatic pattern for
+// NodeLists. I rejected that suggestion because getElementsByTagName()
+// returns a live HTMLCollection, not a NodeList/array, and
+// HTMLCollection has no .forEach method. Using it caused a runtime
+// TypeError ("inputs.forEach is not a function") that silently broke
+// checkSolution() and getHint(), since both call highlightConflicts().
+// Rewrote it as a plain indexed for-loop, which works on any
+// array-like object regardless of its exact type.
 function highlightConflicts() {
     const inputs = document
         .getElementById("sudoku-board")
         .getElementsByTagName("input");
 
-    inputs.forEach(input => {
-        input.classList.remove("incorrect");
-    });
+    for (let i = 0; i < inputs.length; i++) {
+        inputs[i].classList.remove("incorrect");
+    }
 
     for (let i = 0; i < inputs.length; i++) {
         if (!inputs[i].value) continue;
